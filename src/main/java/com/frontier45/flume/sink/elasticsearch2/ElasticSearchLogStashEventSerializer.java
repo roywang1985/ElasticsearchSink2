@@ -93,12 +93,10 @@ public class ElasticSearchLogStashEventSerializer implements
         //ContentBuilderUtil.appendField(builder, "@message", body);
         XContentType contentType = XContentFactory.xContentType(body);
         if (contentType == null) {
-                ContentBuilderUtil.addSimpleField(builder, "@message", new String(body, "utf-8"));
+            builder.field("@message", new String(body, "utf-8"));
         } else {
-                ContentBuilderUtil.addComplexField(builder, "@message", contentType, new String(body, "utf-8"));
+            ContentBuilderUtil.addComplexField(builder, "@message", contentType, body);
         }
-        
-        builder.field("@message", new String(body, "utf-8"));
     }
 
     private void appendHeaders(XContentBuilder builder, Event event)
