@@ -23,6 +23,9 @@ import org.apache.flume.Context;
 import org.apache.flume.Event;
 import org.apache.flume.conf.ComponentConfiguration;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentParser;
+import org.elasticsearch.common.xcontent.XContentType;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -87,7 +90,15 @@ public class ElasticSearchLogStashEventSerializer implements
     private void appendBody(XContentBuilder builder, Event event)
             throws IOException {
         byte[] body = event.getBody();
-        ContentBuilderUtil.appendField(builder, "@message", body);
+        //ContentBuilderUtil.appendField(builder, "@message", body);
+        XContentType contentType = XContentFactory.xContentType(body);
+        if (contentType == null) {
+                ContentBuilderUtil.addSimpleField(builder, "@message", new String(body, "utf-8"));
+        } else {
+                ContentBuilderUtil.addComplexField(builder, "@message", contentType, new String(body, "utf-8"));
+        }
+        
+        builder.field("@message", new String(body, "utf-8"));
     }
 
     private void appendHeaders(XContentBuilder builder, Event event)
