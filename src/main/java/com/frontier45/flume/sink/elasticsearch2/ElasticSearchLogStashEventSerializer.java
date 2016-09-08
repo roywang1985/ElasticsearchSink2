@@ -26,6 +26,8 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -78,6 +80,8 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
  */
 public class ElasticSearchLogStashEventSerializer implements
         ElasticSearchEventSerializer {
+                
+    private static final Logger logger = LoggerFactory.getLogger(ElasticSearchLogStashEventSerializer.class);
 
     @Override
     public XContentBuilder getContentBuilder(Event event) throws IOException {
@@ -93,7 +97,11 @@ public class ElasticSearchLogStashEventSerializer implements
         //ContentBuilderUtil.appendField(builder, "@message", body);
         XContentType contentType = XContentFactory.xContentType(body);
         if (contentType == null) {
-            builder.field("@message", new String(body, "utf-8"));
+            String str = new String(body, "utf-8");
+            if(str != null && str.indexOf("") > 0){
+                logger.debug(str);
+            }
+            builder.field("@message", str);
         } else {
             ContentBuilderUtil.addComplexField(builder, "@message", contentType, body);
         }
