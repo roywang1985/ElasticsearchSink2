@@ -97,11 +97,7 @@ public class ElasticSearchLogStashEventSerializer implements
         //ContentBuilderUtil.appendField(builder, "@message", body);
         XContentType contentType = XContentFactory.xContentType(body);
         if (contentType == null) {
-            String str = new String(body, "utf-8");
-            if(str != null && str.indexOf("JobDetail") > 0){
-                logger.debug(str);
-            }
-            builder.field("@message", str);
+            builder.field("@message", new String(body, "utf-8"));
         } else {
             ContentBuilderUtil.addComplexField(builder, "@message", contentType, body);
         }
