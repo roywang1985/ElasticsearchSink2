@@ -98,7 +98,7 @@ public class ElasticSearchLogStashEventSerializer implements
         XContentType contentType = XContentFactory.xContentType(body);
         if (contentType == null) {
             String str = new String(body, "utf-8");
-            if(str != null && str.indexOf("") > 0){
+            if(str != null && str.indexOf("JobDetail") > 0){
                 logger.debug(str);
             }
             builder.field("@message", str);
