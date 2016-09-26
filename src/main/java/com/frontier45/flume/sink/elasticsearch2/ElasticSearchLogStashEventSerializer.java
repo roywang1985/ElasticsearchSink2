@@ -84,6 +84,8 @@ public class ElasticSearchLogStashEventSerializer implements
                 
     private static final Logger logger = LoggerFactory.getLogger(ElasticSearchLogStashEventSerializer.class);
 
+    JsonParser parser = new JsonParser();		
+		
     @Override
     public XContentBuilder getContentBuilder(Event event) throws IOException {
         XContentBuilder builder = jsonBuilder().startObject();
