@@ -95,23 +95,29 @@ public class ElasticSearchLogStashEventSerializer implements
     private void appendBody(XContentBuilder builder, Event event)
             throws IOException {
         byte[] body = event.getBody();
+        String content = new String(body, "utf-8");
+        if(logger.isDebugEnabled()){
+            logger.debug("msg===>" + content);
+        }
 //        ContentBuilderUtil.appendField(builder, "@message", body);
-        XContentType contentType = XContentFactory.xContentType(body);
         Map<String, String> headers = Maps.newHashMap(event.getHeaders());
         String format = headers.get("format");
         if("json".equals(format)){
             try {
-                JsonObject jsonObject = parser.parse(new String(body, "utf-8")).getAsJsonObject();
+                JsonObject jsonObject = parser.parse(content).getAsJsonObject();
                 for(Map.Entry<String, JsonElement> entry : jsonObject.entrySet()){
                     builder.field(entry.getKey(), entry.getValue());
                 }
             } catch (Exception e) {
-                builder.field("@message", new String(body, "utf-8"));
+                builder.field("@message", content);
             }
-        }else if (contentType == null) {
-            builder.field("@message", new String(body, "utf-8"));
-        } else {
-            ContentBuilderUtil.addComplexField(builder, "@message", contentType, body);
+        }else{
+            XContentType contentType = XContentFactory.xContentType(body);
+            if (contentType == null) {
+                builder.field("@message", content);
+            } else {
+                ContentBuilderUtil.addComplexField(builder, "@message", contentType, body);
+            }
         }
     }
 
