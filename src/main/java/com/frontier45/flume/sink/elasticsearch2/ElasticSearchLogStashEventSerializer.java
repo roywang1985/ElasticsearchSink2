@@ -18,6 +18,7 @@
  */
 package com.frontier45.flume.sink.elasticsearch2;
 
+import com.google.gson.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
@@ -94,9 +95,20 @@ public class ElasticSearchLogStashEventSerializer implements
     private void appendBody(XContentBuilder builder, Event event)
             throws IOException {
         byte[] body = event.getBody();
-        //ContentBuilderUtil.appendField(builder, "@message", body);
+//        ContentBuilderUtil.appendField(builder, "@message", body);
         XContentType contentType = XContentFactory.xContentType(body);
-        if (contentType == null) {
+        Map<String, String> headers = Maps.newHashMap(event.getHeaders());
+        String format = headers.get("format");
+        if("json".equals(format)){
+            try {
+                JsonObject jsonObject = parser.parse(new String(body, "utf-8")).getAsJsonObject();
+                for(Map.Entry<String, JsonElement> entry : jsonObject.entrySet()){
+                    builder.field(entry.getKey(), entry.getValue());
+                }
+            } catch (Exception e) {
+                builder.field("@message", new String(body, "utf-8"));
+            }
+        }else if (contentType == null) {
             builder.field("@message", new String(body, "utf-8"));
         } else {
             ContentBuilderUtil.addComplexField(builder, "@message", contentType, body);
@@ -130,20 +142,13 @@ public class ElasticSearchLogStashEventSerializer implements
             builder.field("@account", account);
             set.add("account");
         }
-                    
-        String system = headers.get("system");
-        if (!StringUtils.isBlank(system)
-                && StringUtils.isBlank(headers.get("@system"))) {
-            builder.field("@system", system);
-            set.add("system");
-        }
-             
+         
         String module = headers.get("module");
         if (!StringUtils.isBlank(module)
                 && StringUtils.isBlank(headers.get("@module"))) {
             builder.field("@module", module);
             set.add("module");
-        }      
+        } 
                     
         String app = headers.get("app");
         if (!StringUtils.isBlank(app)
@@ -151,14 +156,6 @@ public class ElasticSearchLogStashEventSerializer implements
             builder.field("@app", app);
             set.add("app");
         }                      
-
-        String type = headers.get("type");
-        if (!StringUtils.isBlank(type)
-                && StringUtils.isBlank(headers.get("@type"))) {
-//            ContentBuilderUtil.appendField(builder, "@type", type.getBytes(charset));
-            builder.field("@type", type);
-            set.add("type");
-        }
 
         String host = headers.get("host");
         if (!StringUtils.isBlank(host)
@@ -178,7 +175,8 @@ public class ElasticSearchLogStashEventSerializer implements
 
         builder.startObject("@fields");
         for (Map.Entry<String, String> entry : headers.entrySet()) {
-            if(set.contains(entry.getKey())){
+			if(set.contains(entry.getKey()) || "type".equals(entry.getKey()) 
+				|| "format".equals(entry.getKey()) || "system".equals(entry.getKey())){
                 continue;
             }
 //            byte[] val = entry.getValue().getBytes(charset);
@@ -186,6 +184,14 @@ public class ElasticSearchLogStashEventSerializer implements
             builder.field(entry.getKey(), entry.getValue());
         }
         builder.endObject();
+		
+		if(logger.isDebugEnabled()){
+            StringBuffer sbf = new StringBuffer();
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                sbf.append("[" + entry.getKey() + "=" + entry.getValue() + "]");
+            }
+            logger.debug(sbf.toString());
+        }
     }
 
     @Override
