@@ -16,27 +16,27 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package com.gildata.flume.sink.elasticsearch;
+package com.frontier45.flume.sink.elasticsearch2;
 
-import com.google.gson.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.flume.Context;
 import org.apache.flume.Event;
 import org.apache.flume.conf.ComponentConfiguration;
 import org.elasticsearch.common.xcontent.XContentBuilder;
-
-import java.io.IOException;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import com.google.common.collect.Maps;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Date;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.google.common.collect.Maps;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 
@@ -74,14 +74,14 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
  *  source: String -> @source: String
  * </pre>
  *
- * @see https://github.com/logstash/logstash/wiki/logstash%27s-internal-message-format
+ * @see https
+ * ://github.com/logstash/logstash/wiki/logstash%27s-internal-message-
+ * format
  */
 public class ElasticSearchLogStashEventSerializer implements
         ElasticSearchEventSerializer {
-
+                
     private static final Logger logger = LoggerFactory.getLogger(ElasticSearchLogStashEventSerializer.class);
-
-    JsonParser parser = new JsonParser();
 
     @Override
     public XContentBuilder getContentBuilder(Event event) throws IOException {
@@ -94,20 +94,9 @@ public class ElasticSearchLogStashEventSerializer implements
     private void appendBody(XContentBuilder builder, Event event)
             throws IOException {
         byte[] body = event.getBody();
-//        ContentBuilderUtil.appendField(builder, "@message", body);
+        //ContentBuilderUtil.appendField(builder, "@message", body);
         XContentType contentType = XContentFactory.xContentType(body);
-        Map<String, String> headers = Maps.newHashMap(event.getHeaders());
-        String format = headers.get("format");
-        if("json".equals(format)){
-            try {
-                JsonObject jsonObject = parser.parse(new String(body, "utf-8")).getAsJsonObject();
-                for(Map.Entry<String, JsonElement> entry : jsonObject.entrySet()){
-                    builder.field(entry.getKey(), entry.getValue());
-                }
-            } catch (Exception e) {
-                builder.field("@message", new String(body, "utf-8"));
-            }
-        }else if (contentType == null) {
+        if (contentType == null) {
             builder.field("@message", new String(body, "utf-8"));
         } else {
             ContentBuilderUtil.addComplexField(builder, "@message", contentType, body);
@@ -127,18 +116,6 @@ public class ElasticSearchLogStashEventSerializer implements
             set.add("timestamp");
         }
 
-        String account = headers.get("account");
-        if (!StringUtils.isBlank(account)) {
-            builder.field("@account", account);
-            set.add("account");
-        }
-
-        String module = headers.get("module");
-        if (!StringUtils.isBlank(module)) {
-            builder.field("@module", account);
-            set.add("module");
-        }
-
         String source = headers.get("source");
         if (!StringUtils.isBlank(source)
                 && StringUtils.isBlank(headers.get("@source"))) {
@@ -146,6 +123,34 @@ public class ElasticSearchLogStashEventSerializer implements
             builder.field("@source", source);
             set.add("source");
         }
+                    
+        String account = headers.get("account");
+        if (!StringUtils.isBlank(source)
+                && StringUtils.isBlank(headers.get("@account"))) {
+            builder.field("@account", account);
+            set.add("account");
+        }
+                    
+        String system = headers.get("system");
+        if (!StringUtils.isBlank(system)
+                && StringUtils.isBlank(headers.get("@system"))) {
+            builder.field("@system", system);
+            set.add("system");
+        }
+             
+        String module = headers.get("module");
+        if (!StringUtils.isBlank(module)
+                && StringUtils.isBlank(headers.get("@module"))) {
+            builder.field("@module", module);
+            set.add("module");
+        }      
+                    
+        String app = headers.get("app");
+        if (!StringUtils.isBlank(app)
+                && StringUtils.isBlank(headers.get("@app"))) {
+            builder.field("@app", app);
+            set.add("app");
+        }                      
 
         String type = headers.get("type");
         if (!StringUtils.isBlank(type)
@@ -173,8 +178,7 @@ public class ElasticSearchLogStashEventSerializer implements
 
         builder.startObject("@fields");
         for (Map.Entry<String, String> entry : headers.entrySet()) {
-            logger.debug("header[" + entry.getKey() + "]=[" + entry.getValue() + "]");
-            if(set.contains(entry.getKey()) || "format".equals(entry.getKey())){
+            if(set.contains(entry.getKey())){
                 continue;
             }
 //            byte[] val = entry.getValue().getBytes(charset);
@@ -182,14 +186,6 @@ public class ElasticSearchLogStashEventSerializer implements
             builder.field(entry.getKey(), entry.getValue());
         }
         builder.endObject();
-
-        if(logger.isDebugEnabled()){
-            StringBuffer sbf = new StringBuffer();
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
-                sbf.append("[" + entry.getKey() + "=" + entry.getValue() + "]");
-            }
-            logger.debug(sbf.toString());
-        }
     }
 
     @Override
