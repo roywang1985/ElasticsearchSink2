@@ -123,6 +123,34 @@ public class ElasticSearchLogStashEventSerializer implements
             builder.field("@source", source);
             set.add("source");
         }
+                    
+        String account = headers.get("account");
+        if (!StringUtils.isBlank(source)
+                && StringUtils.isBlank(headers.get("@account"))) {
+            builder.field("@account", account);
+            set.add("account");
+        }
+                    
+        String system = headers.get("system");
+        if (!StringUtils.isBlank(system)
+                && StringUtils.isBlank(headers.get("@system"))) {
+            builder.field("@system", system);
+            set.add("system");
+        }
+             
+        String module = headers.get("module");
+        if (!StringUtils.isBlank(module)
+                && StringUtils.isBlank(headers.get("@module"))) {
+            builder.field("@module", module);
+            set.add("module");
+        }      
+                    
+        String app = headers.get("app");
+        if (!StringUtils.isBlank(app)
+                && StringUtils.isBlank(headers.get("@app"))) {
+            builder.field("@app", app);
+            set.add("app");
+        }                      
 
         String type = headers.get("type");
         if (!StringUtils.isBlank(type)
@@ -146,20 +174,6 @@ public class ElasticSearchLogStashEventSerializer implements
 //            ContentBuilderUtil.appendField(builder, "@source_path", srcPath.getBytes(charset));
             builder.field("@source_path", srcPath);
             set.add("src_path");
-        }
-
-        String row = headers.get("row");
-        if (!StringUtils.isBlank(row)
-                && StringUtils.isBlank(headers.get("@row"))) {
-            builder.field("@row", Integer.valueOf(row));
-            set.add("row");
-        }
-
-        String length = headers.get("length");
-        if (!StringUtils.isBlank(length)
-                && StringUtils.isBlank(headers.get("@length"))) {
-            builder.field("@length", Long.valueOf(length));
-            set.add("length");
         }
 
         builder.startObject("@fields");
