@@ -128,7 +128,12 @@ public class ElasticSearchLogStashEventSerializer implements
         if(jp.isBoolean()){
             return jp.getAsBoolean();
         }else if(jp.isNumber()){
-            return jp.getAsNumber();
+            String value = jp.getAsString();
+            if(value.indexOf(".") > 0){
+                return jp.getAsDouble();
+            }else{
+                return jp.getAsInt();
+            }
         }else if(jp.isString()){
             return jp.getAsString();
         }
