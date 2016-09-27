@@ -132,7 +132,7 @@ public class ElasticSearchLogStashEventSerializer implements
             if(value.indexOf(".") > 0){
                 return jp.getAsDouble();
             }else{
-                return jp.getAsInt();
+                return jp.getAsLong();
             }
         }else if(jp.isString()){
             return jp.getAsString();
