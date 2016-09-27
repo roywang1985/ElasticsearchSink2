@@ -108,7 +108,7 @@ public class ElasticSearchLogStashEventSerializer implements
             try {
                 JsonObject jsonObject = parser.parse(content).getAsJsonObject();
                 for(Map.Entry<String, JsonElement> entry : jsonObject.entrySet()){
-                    builder.field(entry.getKey(), entry.getValue());
+                    builder.field(entry.getKey(), getValue(entry.getValue()));
                 }
             } catch (Exception e) {
                 builder.field("@message", content);
@@ -122,6 +122,18 @@ public class ElasticSearchLogStashEventSerializer implements
             }
         }
     }
+		
+    private Object getValue(JsonElement obj){
+        JsonPrimitive jp = obj.getAsJsonPrimitive();
+        if(jp.isBoolean()){
+            return jp.getAsBoolean();
+        }else if(jp.isNumber()){
+            return jp.getAsNumber();
+        }else if(jp.isString()){
+            return jp.getAsString();
+        }
+        return obj;
+    }		
 
     private void appendHeaders(XContentBuilder builder, Event event)
             throws IOException {
